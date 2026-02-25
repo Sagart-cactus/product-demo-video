@@ -1,0 +1,15 @@
+node_modules/
+dist/
+output/
+.DS_Store
+
+# Generated per-project files (not part of the plugin template)
+storyboard.json
+src/storyboard.ts
+
+# Recordings — large binary files, not committed
+public/recordings/*.cast
+public/recordings/*.mp4
+public/recordings/*.webm
+public/recordings/*.gif
+!public/recordings/.gitkeep
