@@ -1,7 +1,6 @@
 import React from "react";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import type { Scene } from "../types";
-import { ZoomContainer } from "./ZoomContainer";
 
 /**
  * Feature highlight scene: large title + animated bullet points that reveal
@@ -10,7 +9,7 @@ import { ZoomContainer } from "./ZoomContainer";
 export const FeatureScene: React.FC<{ scene: Scene }> = ({ scene }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const { featureContent, zoomKeyframes } = scene;
+  const { featureContent } = scene;
 
   const bullets = featureContent?.bullets ?? [];
   const layout = featureContent?.layout ?? "centered";
@@ -48,107 +47,105 @@ export const FeatureScene: React.FC<{ scene: Scene }> = ({ scene }) => {
   );
 
   return (
-    <ZoomContainer zoomKeyframes={zoomKeyframes}>
-      <div
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        backgroundColor: "#0f0f0f",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: isLeft ? "flex-start" : "center",
+        justifyContent: "center",
+        padding: isLeft ? "0 140px" : "0 100px",
+        boxSizing: "border-box",
+      }}
+    >
+      {/* Icon */}
+      {featureContent?.icon && (
+        <div
         style={{
-          width: "100%",
-          height: "100%",
-          backgroundColor: "#0f0f0f",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: isLeft ? "flex-start" : "center",
-          justifyContent: "center",
-          padding: isLeft ? "0 140px" : "0 100px",
-          boxSizing: "border-box",
+          fontSize: 80,
+          marginBottom: 28,
+          opacity: iconProgress,
+          transform: `scale(${interpolate(iconProgress, [0, 1], [0.4, 1])})`,
+          lineHeight: 1,
         }}
       >
-        {/* Icon */}
-        {featureContent?.icon && (
+          {featureContent.icon}
+        </div>
+      )}
+
+      {/* Feature title */}
+      <div
+        style={{
+          opacity: titleProgress,
+          transform: `translateY(${interpolate(titleProgress, [0, 1], [24, 0])}px)`,
+          color: "#ffffff",
+          fontSize: 72,
+          fontWeight: 800,
+          fontFamily: "system-ui, -apple-system, sans-serif",
+          letterSpacing: "-0.03em",
+          lineHeight: 1.1,
+          textAlign: isLeft ? "left" : "center",
+          marginBottom: 52,
+          maxWidth: 1100,
+        }}
+      >
+        {featureContent?.featureTitle ?? scene.title}
+      </div>
+
+      {/* Bullet points */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 22,
+          alignItems: isLeft ? "flex-start" : "center",
+        }}
+      >
+        {bullets.map((bullet, i) => (
           <div
+            key={i}
             style={{
-              fontSize: 80,
-              marginBottom: 28,
-              opacity: iconProgress,
-              transform: `scale(${interpolate(iconProgress, [0, 1], [0.4, 1])})`,
-              lineHeight: 1,
+              opacity: bulletProgresses[i],
+              transform: `translateX(${interpolate(
+                bulletProgresses[i],
+                [0, 1],
+                [isLeft ? -24 : 0, 0]
+              )}px) translateY(${interpolate(
+                bulletProgresses[i],
+                [0, 1],
+                [isLeft ? 0 : 12, 0]
+              )}px)`,
+              display: "flex",
+              alignItems: "center",
+              gap: 18,
             }}
           >
-            {featureContent.icon}
-          </div>
-        )}
-
-        {/* Feature title */}
-        <div
-          style={{
-            opacity: titleProgress,
-            transform: `translateY(${interpolate(titleProgress, [0, 1], [24, 0])}px)`,
-            color: "#ffffff",
-            fontSize: 72,
-            fontWeight: 800,
-            fontFamily: "system-ui, -apple-system, sans-serif",
-            letterSpacing: "-0.03em",
-            lineHeight: 1.1,
-            textAlign: isLeft ? "left" : "center",
-            marginBottom: 52,
-            maxWidth: 1100,
-          }}
-        >
-          {featureContent?.featureTitle ?? scene.title}
-        </div>
-
-        {/* Bullet points */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 22,
-            alignItems: isLeft ? "flex-start" : "center",
-          }}
-        >
-          {bullets.map((bullet, i) => (
             <div
-              key={i}
               style={{
-                opacity: bulletProgresses[i],
-                transform: `translateX(${interpolate(
-                  bulletProgresses[i],
-                  [0, 1],
-                  [isLeft ? -24 : 0, 0]
-                )}px) translateY(${interpolate(
-                  bulletProgresses[i],
-                  [0, 1],
-                  [isLeft ? 0 : 12, 0]
-                )}px)`,
-                display: "flex",
-                alignItems: "center",
-                gap: 18,
+                width: 10,
+                height: 10,
+                borderRadius: "50%",
+                background: accentColor,
+                flexShrink: 0,
+                boxShadow: `0 0 12px ${accentColor}88`,
+              }}
+            />
+            <span
+              style={{
+                color: "rgba(255,255,255,0.85)",
+                fontSize: 34,
+                fontFamily: "system-ui, -apple-system, sans-serif",
+                fontWeight: 400,
+                lineHeight: 1.4,
               }}
             >
-              <div
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: "50%",
-                  background: accentColor,
-                  flexShrink: 0,
-                  boxShadow: `0 0 12px ${accentColor}88`,
-                }}
-              />
-              <span
-                style={{
-                  color: "rgba(255,255,255,0.85)",
-                  fontSize: 34,
-                  fontFamily: "system-ui, -apple-system, sans-serif",
-                  fontWeight: 400,
-                  lineHeight: 1.4,
-                }}
-              >
-                {bullet}
-              </span>
-            </div>
-          ))}
-        </div>
+              {bullet}
+            </span>
+          </div>
+        ))}
       </div>
-    </ZoomContainer>
+    </div>
   );
 };

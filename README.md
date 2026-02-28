@@ -5,7 +5,7 @@ A **Claude Code plugin** that turns any software project into a polished product
 
 Type `/demo-video` from any project and Claude will analyze your code, ask which features to
 showcase, write a storyboard, generate TTS narration, and render everything as a 1080p video
-with smooth **zoom-into-region** effects using [Remotion](https://www.remotion.dev).
+using [Remotion](https://www.remotion.dev).
 
 ---
 
@@ -29,7 +29,7 @@ src/storyboard.ts  (React scene data)
       │
       └─ Remotion (React components)
             ├─ IntroScene / FeatureScene / CodeScene / ...
-            ├─ ZoomContainer (transformOrigin + CSS scale)
+            ├─ WorkflowScene (animated process map)
             ├─ CaptionOverlay (narration subtitles)
             └─ Audio (TTS narration MP3s)
                      │
@@ -97,8 +97,8 @@ cd /path/to/product-demo-video
 npx remotion studio
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to scrub through the video, check zoom
-timing, and tweak content. The studio **hot-reloads** whenever you edit `src/storyboard.ts`.
+Open [http://localhost:3000](http://localhost:3000) to scrub through the video, check timing,
+and tweak content. The studio **hot-reloads** whenever you edit `src/storyboard.ts`.
 
 ### 3. Render the final video
 
@@ -138,6 +138,27 @@ Output: `output/demo.mp4` at 1920×1080, 30fps.
     bullets: ["Sub-millisecond delivery", "Auto-reconnect", "Presence tracking"],
     icon: "⚡",
     layout: "centered",    // or "left"
+  },
+}
+```
+
+### `workflow` — Animated process flow
+
+```typescript
+{
+  type: "workflow",
+  durationInSeconds: 12,
+  workflowContent: {
+    headline: "Six-step AI workflow",
+    subheadline: "From scan to final render",
+    steps: [
+      "Scan project",
+      "Ask key questions",
+      "Design storyboard",
+      "Generate narration",
+      "Write storyboard.ts",
+      "Preview and render",
+    ],
   },
 }
 ```
@@ -204,40 +225,6 @@ Output: `output/demo.mp4` at 1920×1080, 30fps.
 
 ---
 
-## Zoom effect
-
-The `ZoomContainer` component zooms into any rectangular region using CSS `transform: scale()`
-with `transformOrigin` set to the center of the target region.
-
-```typescript
-zoomKeyframes: [
-  // Zoom IN to a code line
-  {
-    startFrame: 90,   // absolute frame within this scene
-    endFrame: 200,    // ~37 frames = 1.2 sec zoom-in
-    fromScale: 1.0,
-    toScale: 2.5,
-    region: {
-      x: 0.05,        // 5% from left
-      y: 0.45,        // 45% from top
-      width: 0.65,    // 65% of video width
-      height: 0.10,   // 10% of video height
-    },
-    label: "One-line connect call",
-  },
-  // Always pair with a zoom OUT
-  {
-    startFrame: 200,
-    endFrame: 240,
-    fromScale: 2.5,
-    toScale: 1.0,
-    region: { x: 0.05, y: 0.45, width: 0.65, height: 0.10 },
-  },
-],
-```
-
----
-
 ## TTS narration
 
 Each scene can have a `narration` string and a `narrationAudioFile` pointing to an MP3 in
@@ -264,12 +251,12 @@ Each scene can have a `narration` string and a `narrationAudioFile` pointing to 
 |------|---------|
 | `.claude/commands/demo-video.md` | The `/demo-video` slash command |
 | `src/storyboard.ts` | Generated scene data — edit to tweak content and timing |
-| `src/types.ts` | TypeScript interfaces for `Storyboard`, `Scene`, `ZoomKeyframe` |
+| `src/types.ts` | TypeScript interfaces for `Storyboard` and `Scene` |
 | `src/DemoVideo.tsx` | Sequences scenes with `<TransitionSeries>` + fade crossfades |
 | `src/Root.tsx` | Registers the Remotion composition |
-| `src/components/ZoomContainer.tsx` | Core zoom engine |
 | `src/components/IntroScene.tsx` | Animated title + tagline |
 | `src/components/FeatureScene.tsx` | Feature title + animated bullets |
+| `src/components/WorkflowScene.tsx` | Animated process flow scene |
 | `src/components/CodeScene.tsx` | Prism.js syntax highlighting |
 | `src/components/ScreenshotScene.tsx` | Image display with caption |
 | `src/components/ComparisonScene.tsx` | Side-by-side panels |
@@ -290,9 +277,6 @@ and Remotion Studio hot-reloads instantly.
 // Extend a scene
 durationInSeconds: 14,   // was 10
 
-// Move a zoom earlier
-startFrame: 60,   // was 90
-
 // Change accent color across all scenes
 theme: { accentColor: "#ec4899", backgroundColor: "#0f0f0f" },
 
@@ -302,7 +286,6 @@ theme: { accentColor: "#ec4899", backgroundColor: "#0f0f0f" },
   type: "screenshot",
   title: "Dashboard",
   durationInSeconds: 8,
-  zoomKeyframes: [],
   screenshotContent: {
     imageFile: "screenshots/dashboard.png",
     caption: "Live analytics at a glance",

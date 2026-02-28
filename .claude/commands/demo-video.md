@@ -53,6 +53,7 @@ Plan scenes using these types:
 |------|-------------|
 | `intro` | Always first — animated project name + tagline |
 | `feature` | Showcase a key feature with bullet points |
+| `workflow` | Visualize a multi-step process or system flow |
 | `code` | Show a code snippet (syntax highlighted, optional line reveal) |
 | `screenshot` | Display a UI screenshot with caption |
 | `comparison` | Before/after or problem/solution side-by-side |
@@ -62,14 +63,7 @@ Plan scenes using these types:
 - Always start with `intro`, end with `outro`
 - Target ~8–12 seconds per scene for narration pace
 - Write narration as crisp spoken-word sentences (2–3 per scene, ~120–150 words/minute)
-- Design zoom keyframes for scenes that benefit from it (code line reveals, UI details)
-
-**Zoom keyframe guidance:**
-- Region values are fractions 0–1 of video dimensions (x=left, y=top)
-- Always pair zoom-in with zoom-out (same region, reversed scales)
-- Zoom-in: ~40 frames. Zoom hold: as needed. Zoom-out: ~20 frames
-- Good targets: a specific code block, a UI panel, a key statistic
-- `startFrame`/`endFrame` are absolute from the start of that scene
+- Include at least one clearly animated scene (`workflow`, `comparison`, or dynamic `feature`) so the video is not static text
 
 **Show the storyboard** to the user as a scene list with narration text and await approval.
 Allow them to adjust scenes, durations, or narration.
@@ -81,7 +75,7 @@ Scene 1 — intro (8s)
 
 Scene 2 — code (12s)  "Install & Connect"
   Narration: "Install with npm and connect in three lines of code."
-  Code: npm install mylib + connection snippet  Zoom: line 3 (the connect call), frames 90→200
+  Code: npm install mylib + connection snippet
 
 Scene 3 — feature (10s)  "Real-time Events"
   Narration: "Subscribe to any channel and receive events as they happen, with zero latency."
@@ -145,7 +139,7 @@ After storyboard approval:
 Write `src/storyboard.ts` in **`{{REMOTION_PLUGIN_DIR}}/src/storyboard.ts`**.
 
 This must be valid TypeScript exporting a `Storyboard` typed value. Include all content
-fields, narrationAudioFile paths, and zoomKeyframes.
+fields and narrationAudioFile paths.
 
 ```typescript
 import type { Storyboard } from "./types";
@@ -170,7 +164,6 @@ export const storyboard: Storyboard = {
       durationInSeconds: 8,
       narration: "MyLib is the fastest way to add real-time sync to any JavaScript app.",
       narrationAudioFile: "narration/scene-1.mp3",
-      zoomKeyframes: [],
       introContent: {
         projectName: "MyLib",
         tagline: "Real-time sync for every JavaScript app",
@@ -185,23 +178,6 @@ export const storyboard: Storyboard = {
       durationInSeconds: 12,
       narration: "Install with npm and connect in three lines of code.",
       narrationAudioFile: "narration/scene-2.mp3",
-      zoomKeyframes: [
-        {
-          startFrame: 90,
-          endFrame: 200,
-          fromScale: 1.0,
-          toScale: 2.2,
-          region: { x: 0.05, y: 0.45, width: 0.7, height: 0.12 },
-          label: "One-line connect",
-        },
-        {
-          startFrame: 200,
-          endFrame: 240,
-          fromScale: 2.2,
-          toScale: 1.0,
-          region: { x: 0.05, y: 0.45, width: 0.7, height: 0.12 },
-        },
-      ],
       codeContent: {
         code: `import { connect } from 'mylib';
 
@@ -224,7 +200,6 @@ channel.subscribe((event) => {
       durationInSeconds: 10,
       narration: "Subscribe to any channel and receive events with zero latency. Auto-reconnect handles network drops automatically.",
       narrationAudioFile: "narration/scene-3.mp3",
-      zoomKeyframes: [],
       featureContent: {
         featureTitle: "Real-time Events",
         bullets: [
@@ -243,7 +218,6 @@ channel.subscribe((event) => {
       durationInSeconds: 7,
       narration: "Start building with MyLib today.",
       narrationAudioFile: "narration/scene-4.mp3",
-      zoomKeyframes: [],
       outroContent: {
         headline: "Start building today",
         cta: "Get started free",
@@ -260,8 +234,7 @@ channel.subscribe((event) => {
 
 **Validation checklist before writing:**
 - [ ] Every scene has a matching `narrationAudioFile: "narration/scene-N.mp3"`
-- [ ] Zoom `endFrame` ≤ `durationInSeconds × fps` for each scene
-- [ ] Zoom regions: all x, y, width, height are fractions 0–1
+- [ ] At least one scene includes clear animated process flow (prefer `workflow` for tool pipelines)
 - [ ] `introContent.accentColor` matches `theme.accentColor`
 - [ ] `outroContent.accentColor` matches `theme.accentColor`
 - [ ] Code in `codeContent.code` uses real syntax from the target project (not placeholder)
@@ -316,6 +289,15 @@ featureContent: {
   bullets: string[];        // revealed one at a time
   icon?: string;            // emoji shown above title
   layout?: "centered" | "left";
+}
+```
+
+### `workflow`
+```typescript
+workflowContent: {
+  headline: string;
+  subheadline?: string;
+  steps: string[];          // at least 4 short steps
 }
 ```
 

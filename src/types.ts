@@ -1,28 +1,4 @@
-/**
- * A rectangular region of the video frame to zoom into.
- * All values are fractions of video dimensions (0–1).
- */
-export interface ZoomRegion {
-  x: number;      // left edge as fraction of video width
-  y: number;      // top edge as fraction of video height
-  width: number;  // region width as fraction of video width
-  height: number; // region height as fraction of video height
-}
-
-/**
- * Defines a zoom-in or zoom-out animation over a frame range.
- * Use fromScale=1 → toScale>1 to zoom in, and reverse to zoom out.
- */
-export interface ZoomKeyframe {
-  startFrame: number;
-  endFrame: number;
-  fromScale: number;
-  toScale: number;
-  region: ZoomRegion;   // center of this region becomes the transformOrigin
-  label?: string;       // optional callout text shown during zoom
-}
-
-export type SceneType = "intro" | "feature" | "code" | "screenshot" | "comparison" | "outro";
+export type SceneType = "intro" | "feature" | "workflow" | "code" | "screenshot" | "comparison" | "outro";
 
 export interface Scene {
   id: string;
@@ -33,9 +9,6 @@ export interface Scene {
   // Narration: text for TTS generation + on-screen captions
   narration?: string;
   narrationAudioFile?: string;  // path relative to public/ — set after TTS generation
-
-  // Zoom (reused from existing ZoomKeyframe/ZoomRegion — unchanged)
-  zoomKeyframes: ZoomKeyframe[];
 
   // Type-specific content (only the relevant block is populated per type)
   introContent?: {
@@ -50,6 +23,12 @@ export interface Scene {
     bullets: string[];            // animated bullet points (revealed one at a time)
     icon?: string;                // emoji or single character used as visual anchor
     layout?: "centered" | "left"; // default: "centered"
+  };
+
+  workflowContent?: {
+    headline: string;
+    subheadline?: string;
+    steps: string[];
   };
 
   codeContent?: {

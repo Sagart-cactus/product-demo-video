@@ -5,7 +5,6 @@ import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-bash";
 import type { Scene } from "../types";
-import { ZoomContainer } from "./ZoomContainer";
 
 // Inline dark theme for prism-highlighted HTML
 const PRISM_DARK_CSS = `
@@ -101,7 +100,7 @@ const Panel: React.FC<PanelProps> = ({ label, content, language, progress, side 
 export const ComparisonScene: React.FC<{ scene: Scene }> = ({ scene }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const { comparisonContent, zoomKeyframes } = scene;
+  const { comparisonContent } = scene;
 
   const leftProgress = spring({
     frame,
@@ -121,7 +120,7 @@ export const ComparisonScene: React.FC<{ scene: Scene }> = ({ scene }) => {
   });
 
   return (
-    <ZoomContainer zoomKeyframes={zoomKeyframes}>
+    <>
       {/* Inject prism dark theme CSS */}
       <style dangerouslySetInnerHTML={{ __html: PRISM_DARK_CSS }} />
 
@@ -139,44 +138,44 @@ export const ComparisonScene: React.FC<{ scene: Scene }> = ({ scene }) => {
       >
         {comparisonContent ? (
           <div
-            style={{
-              flex: 1,
-              display: "flex",
-              gap: 28,
-              overflow: "hidden",
-            }}
-          >
-            <Panel
-              label={comparisonContent.leftLabel}
-              content={comparisonContent.leftContent}
-              language={comparisonContent.language}
-              progress={leftProgress}
-              side="left"
-            />
-            <Panel
-              label={comparisonContent.rightLabel}
-              content={comparisonContent.rightContent}
-              language={comparisonContent.language}
-              progress={rightProgress}
-              side="right"
-            />
-          </div>
-        ) : (
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "rgba(255,255,255,0.3)",
-              fontSize: 28,
-              fontFamily: "system-ui, sans-serif",
-            }}
-          >
-            No content — set comparisonContent
-          </div>
-        )}
+        style={{
+          flex: 1,
+          display: "flex",
+          gap: 28,
+          overflow: "hidden",
+        }}
+      >
+          <Panel
+            label={comparisonContent.leftLabel}
+            content={comparisonContent.leftContent}
+            language={comparisonContent.language}
+            progress={leftProgress}
+            side="left"
+          />
+          <Panel
+            label={comparisonContent.rightLabel}
+            content={comparisonContent.rightContent}
+            language={comparisonContent.language}
+            progress={rightProgress}
+            side="right"
+          />
+        </div>
+      ) : (
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "rgba(255,255,255,0.3)",
+            fontSize: 28,
+            fontFamily: "system-ui, sans-serif",
+          }}
+        >
+          No content — set comparisonContent
+        </div>
+      )}
       </div>
-    </ZoomContainer>
+    </>
   );
 };

@@ -7,7 +7,6 @@ import "prismjs/components/prism-bash";
 import "prismjs/components/prism-yaml";
 import "prismjs/components/prism-json";
 import type { Scene } from "../types";
-import { ZoomContainer } from "./ZoomContainer";
 
 // Dark theme token colors
 const TOKEN_COLORS: Record<string, string> = {
@@ -94,7 +93,7 @@ function flattenToLines(tokens: PToken[]): React.ReactNode[][] {
 export const CodeScene: React.FC<{ scene: Scene }> = ({ scene }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const { codeContent, zoomKeyframes } = scene;
+  const { codeContent } = scene;
 
   const code = codeContent?.code ?? "// No code — set codeContent.code";
   const language = codeContent?.language ?? "typescript";
@@ -116,118 +115,116 @@ export const CodeScene: React.FC<{ scene: Scene }> = ({ scene }) => {
   });
 
   return (
-    <ZoomContainer zoomKeyframes={zoomKeyframes}>
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        backgroundColor: "#0f0f0f",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "60px 80px",
+        boxSizing: "border-box",
+      }}
+    >
       <div
         style={{
+          opacity: containerProgress,
+          transform: `translateY(${interpolate(containerProgress, [0, 1], [20, 0])}px)`,
           width: "100%",
-          height: "100%",
-          backgroundColor: "#0f0f0f",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "60px 80px",
-          boxSizing: "border-box",
+          maxWidth: 1440,
+          borderRadius: 16,
+          overflow: "hidden",
+          boxShadow: "0 28px 80px rgba(0,0,0,0.65)",
         }}
       >
+        {/* Window chrome */}
         <div
           style={{
-            opacity: containerProgress,
-            transform: `translateY(${interpolate(containerProgress, [0, 1], [20, 0])}px)`,
-            width: "100%",
-            maxWidth: 1440,
-            borderRadius: 16,
-            overflow: "hidden",
-            boxShadow: "0 28px 80px rgba(0,0,0,0.65)",
+            background: "#161625",
+            padding: "14px 24px",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
           }}
         >
-          {/* Window chrome */}
-          <div
-            style={{
-              background: "#161625",
-              padding: "14px 24px",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              borderBottom: "1px solid rgba(255,255,255,0.06)",
-            }}
-          >
-            <div style={{ width: 13, height: 13, borderRadius: "50%", background: "#ff5f57" }} />
-            <div style={{ width: 13, height: 13, borderRadius: "50%", background: "#ffbd2e" }} />
-            <div style={{ width: 13, height: 13, borderRadius: "50%", background: "#28ca41" }} />
-            {filename && (
-              <span
+          <div style={{ width: 13, height: 13, borderRadius: "50%", background: "#ff5f57" }} />
+          <div style={{ width: 13, height: 13, borderRadius: "50%", background: "#ffbd2e" }} />
+          <div style={{ width: 13, height: 13, borderRadius: "50%", background: "#28ca41" }} />
+          {filename && (
+            <span
+              style={{
+                marginLeft: 20,
+                color: "rgba(255,255,255,0.45)",
+                fontSize: 19,
+                fontFamily: "'Menlo', 'Monaco', 'Courier New', monospace",
+              }}
+            >
+              {filename}
+            </span>
+          )}
+        </div>
+
+        {/* Code area */}
+        <div
+          style={{
+            background: "#1e1e2e",
+            padding: "28px 0 28px",
+            fontFamily: "'Menlo', 'Monaco', 'Courier New', monospace",
+            fontSize: 23,
+            lineHeight: 1.75,
+            overflowX: "hidden",
+          }}
+        >
+          {codeLines.map((lineNodes, i) => {
+            const lineNum = i + 1;
+            const isHighlighted = highlightLines.has(lineNum);
+            const lineOpacity = revealByLine
+              ? spring({
+                  frame,
+                  fps,
+                  from: 0,
+                  to: 1,
+                  delay: 18 + i * 4,
+                  config: { damping: 22, stiffness: 140 },
+                })
+              : 1;
+
+            return (
+              <div
+                key={i}
                 style={{
-                  marginLeft: 20,
-                  color: "rgba(255,255,255,0.45)",
-                  fontSize: 19,
-                  fontFamily: "'Menlo', 'Monaco', 'Courier New', monospace",
+                  display: "flex",
+                  alignItems: "baseline",
+                  background: isHighlighted ? "rgba(251,191,36,0.07)" : "transparent",
+                  borderLeft: isHighlighted ? "3px solid #fbbf24" : "3px solid transparent",
+                  paddingRight: 32,
+                  opacity: lineOpacity,
+                  minHeight: "1.75em",
                 }}
               >
-                {filename}
-              </span>
-            )}
-          </div>
-
-          {/* Code area */}
-          <div
-            style={{
-              background: "#1e1e2e",
-              padding: "28px 0 28px",
-              fontFamily: "'Menlo', 'Monaco', 'Courier New', monospace",
-              fontSize: 23,
-              lineHeight: 1.75,
-              overflowX: "hidden",
-            }}
-          >
-            {codeLines.map((lineNodes, i) => {
-              const lineNum = i + 1;
-              const isHighlighted = highlightLines.has(lineNum);
-              const lineOpacity = revealByLine
-                ? spring({
-                    frame,
-                    fps,
-                    from: 0,
-                    to: 1,
-                    delay: 18 + i * 4,
-                    config: { damping: 22, stiffness: 140 },
-                  })
-                : 1;
-
-              return (
-                <div
-                  key={i}
+                <span
                   style={{
-                    display: "flex",
-                    alignItems: "baseline",
-                    background: isHighlighted ? "rgba(251,191,36,0.07)" : "transparent",
-                    borderLeft: isHighlighted ? "3px solid #fbbf24" : "3px solid transparent",
-                    paddingRight: 32,
-                    opacity: lineOpacity,
-                    minHeight: "1.75em",
+                    color: "#374151",
+                    minWidth: 52,
+                    userSelect: "none",
+                    paddingLeft: 20,
+                    paddingRight: 20,
+                    textAlign: "right",
+                    flexShrink: 0,
+                    fontSize: 18,
                   }}
                 >
-                  <span
-                    style={{
-                      color: "#374151",
-                      minWidth: 52,
-                      userSelect: "none",
-                      paddingLeft: 20,
-                      paddingRight: 20,
-                      textAlign: "right",
-                      flexShrink: 0,
-                      fontSize: 18,
-                    }}
-                  >
-                    {lineNum}
-                  </span>
-                  <span style={{ whiteSpace: "pre" }}>{lineNodes}</span>
-                </div>
-              );
-            })}
-          </div>
+                  {lineNum}
+                </span>
+                <span style={{ whiteSpace: "pre" }}>{lineNodes}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
-    </ZoomContainer>
+    </div>
   );
 };

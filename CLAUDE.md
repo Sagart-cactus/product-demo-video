@@ -32,6 +32,7 @@ npx remotion render DemoVideo output/demo.mp4
 |------|---------|
 | `intro` | Animated project name + tagline + optional badge |
 | `feature` | Feature title + animated bullet points (revealed one at a time) |
+| `workflow` | Animated multi-step process map |
 | `code` | Syntax-highlighted code with optional line-by-line reveal |
 | `screenshot` | Static image with optional caption |
 | `comparison` | Side-by-side before/after panels |
@@ -41,36 +42,17 @@ npx remotion render DemoVideo output/demo.mp4
 
 | File | Purpose |
 |------|---------|
-| `src/storyboard.ts` | **Your demo data** — scenes, content, zoom keyframes. Edit to tweak. |
-| `src/types.ts` | TypeScript interfaces: `Storyboard`, `Scene`, `ZoomKeyframe` |
-| `src/components/ZoomContainer.tsx` | Core zoom engine — `transformOrigin` + Bezier-eased `scale()` |
+| `src/storyboard.ts` | **Your demo data** — scenes, content, narration references. Edit to tweak. |
+| `src/types.ts` | TypeScript interfaces: `Storyboard`, `Scene` |
 | `src/components/IntroScene.tsx` | Animated title + tagline |
 | `src/components/FeatureScene.tsx` | Feature title + bullet points |
+| `src/components/WorkflowScene.tsx` | Animated process flow scene |
 | `src/components/CodeScene.tsx` | Prism.js syntax highlighting |
 | `src/components/ScreenshotScene.tsx` | Image display |
 | `src/components/ComparisonScene.tsx` | Side-by-side comparison |
 | `src/components/OutroScene.tsx` | CTA + links |
 | `src/components/CaptionOverlay.tsx` | Narration subtitles at bottom of frame |
 | `scripts/generate-narration.sh` | TTS generator (macOS `say` / OpenAI / ElevenLabs) |
-
-## Zoom Effect
-
-The `ZoomContainer` component zooms into any rectangular region:
-
-```typescript
-zoomKeyframes: [
-  {
-    startFrame: 90,   // absolute frame within this scene
-    endFrame: 210,
-    fromScale: 1.0,
-    toScale: 2.5,
-    region: { x: 0.05, y: 0.45, width: 0.6, height: 0.12 }, // fractions 0–1
-    label: "Key line here",
-  },
-  { startFrame: 210, endFrame: 260, fromScale: 2.5, toScale: 1.0,
-    region: { x: 0.05, y: 0.45, width: 0.6, height: 0.12 } },
-]
-```
 
 ## TTS Narration
 
