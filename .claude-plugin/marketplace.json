@@ -9,14 +9,6 @@
   },
   "plugins": [
     {
-      "name": "go",
-      "source": "https://github.com/Sagart-cactus/claude-go-plugin"
-    },
-    {
-      "name": "k8s",
-      "source": "https://github.com/Sagart-cactus/claude-k8s-plugin"
-    },
-    {
       "name": "demo-video",
       "source": "./"
     }
