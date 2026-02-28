@@ -4,13 +4,14 @@ import { interpolate, useCurrentFrame } from "remotion";
 interface Props {
   title: string;
   subtitle?: string;
+  accentColor?: string;
 }
 
 /**
  * Scene title overlay — fades in over the first 20 frames,
  * holds for 60 frames, then fades out.
  */
-export const TitleCard: React.FC<Props> = ({ title, subtitle }) => {
+export const TitleCard: React.FC<Props> = ({ title, subtitle, accentColor = "#6366f1" }) => {
   const frame = useCurrentFrame();
 
   const opacity = interpolate(
@@ -44,7 +45,7 @@ export const TitleCard: React.FC<Props> = ({ title, subtitle }) => {
         style={{
           background: "rgba(0, 0, 0, 0.65)",
           backdropFilter: "blur(8px)",
-          borderLeft: "4px solid #6366f1",
+          borderLeft: `4px solid ${accentColor}`,
           borderRadius: "0 8px 8px 0",
           padding: "14px 28px",
           display: "inline-block",

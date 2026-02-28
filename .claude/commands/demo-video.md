@@ -1,235 +1,361 @@
 ---
-description: Create a polished product demo video with animated zoom effects using asciinema (terminal) and Playwright (browser).
-allowed-tools: Read, Write, Bash, Glob, Grep, mcp__playwright__browser_navigate, mcp__playwright__browser_screenshot, mcp__playwright__browser_click, mcp__playwright__browser_type, mcp__playwright__browser_scroll
+description: Create a polished product demo video with animated scenes, syntax-highlighted code, and TTS narration — no recordings required.
+allowed-tools: Read, Write, Bash, Glob, Grep, AskUserQuestion
 ---
 
-# /demo-video — Product Demo Video Generator
+# /demo-video — Programmatic Product Demo Video Generator
 
 You are helping the user create a polished product demo video for their software project.
-The output is a Remotion composition that plays their recordings with smooth zoom-into-region effects.
+The output is a **fully programmatic Remotion composition** — animated React scenes, no recordings required.
 
-The plugin lives at: **{{REMOTION_PLUGIN_DIR}}** (the directory containing this CLAUDE.md).
-You will write generated files there AND in the user's target project directory.
+The plugin lives at: **{{REMOTION_PLUGIN_DIR}}**
+You will write `src/storyboard.ts` there, and generate a narration script in the user's project.
 
 ---
 
-## STEP 1 — Gather Project Context
+## STEP 1 — Scan the Target Project
 
-The user is running this command from their **target project** directory (not this plugin repo).
-Use your tools to understand the target project:
+The user is running this from their **target project** directory. Use your tools to understand it:
 
 1. Read `README.md`, `docs/`, `CHANGELOG` (whichever exist)
 2. Read dependency manifest: `package.json` / `Cargo.toml` / `pyproject.toml` / `go.mod`
-3. Use `Glob` to list top-level `src/` or `lib/` structure, then `Read` key entry points
-4. Detect project type:
-   - **terminal** — CLI tool, daemon, script. Signs: `bin/`, `argv`, no HTML/frontend
-   - **browser** — Web app. Signs: `index.html`, `next.config.*`, `vite.config.*`, `app/layout.tsx`
-   - **mixed** — Has both a CLI and a web interface
+3. `Glob` the top-level `src/` or `lib/` structure; `Read` 2–3 key entry points
+4. Look for existing screenshots in `screenshots/`, `docs/assets/`, `public/`, `assets/`
+5. Identify the project archetype (e.g. `api-library`, `saas-app`, `cli-tool`, `mobile-sdk`)
 
-Present a brief summary to the user:
-- What the project does
-- Key user-facing features you found
-- Detected project type
-
----
-
-## STEP 2 — Feature Selection
-
-Ask the user:
-> "Which features should I include in the demo? List them by name, or say 'all' to cover everything I found. Also, what total video length do you prefer? (default: 60–90 seconds)"
-
-Wait for their answer. For each chosen feature, classify it as `terminal`, `browser`, or `split`.
+Present a brief summary:
+- What the product does and who it's for
+- Key user-facing features you found (bulleted list)
+- Detected archetype
+- Any screenshots found (list the paths)
 
 ---
 
-## STEP 3 — Generate Storyboard
+## STEP 2 — Q&A with the User
 
-Create `storyboard.json` in the **target project root** (not the plugin dir). Use this schema:
+Use `AskUserQuestion` to ask all of these in one call (up to 4 questions):
 
-```json
-{
-  "projectName": "<name>",
-  "projectType": "terminal|browser|mixed",
-  "outputFile": "demo.mp4",
-  "fps": 30,
-  "width": 1920,
-  "height": 1080,
-  "scenes": [
-    {
-      "id": "scene-1",
-      "title": "Short Feature Name",
-      "description": "One sentence: what the viewer sees in this scene",
-      "type": "terminal|browser|split",
-      "durationInSeconds": 15,
-      "recordingFile": "recordings/scene-1.mp4",
-      "secondaryRecordingFile": null,
-      "zoomKeyframes": [
-        {
-          "startFrame": 90,
-          "endFrame": 210,
-          "fromScale": 1.0,
-          "toScale": 2.5,
-          "region": { "x": 0.05, "y": 0.75, "width": 0.6, "height": 0.18 },
-          "label": "Output appears here"
-        },
-        {
-          "startFrame": 210,
-          "endFrame": 270,
-          "fromScale": 2.5,
-          "toScale": 1.0,
-          "region": { "x": 0.05, "y": 0.75, "width": 0.6, "height": 0.18 },
-          "label": null
-        }
-      ]
-    }
-  ]
-}
-```
+1. **Features**: Which features to highlight? (list what you found, let user pick or say "all")
+2. **Length**: Preferred video length — 30s / 60s / 90s / custom?
+3. **Tone**: Technical/developer-focused · Business/executive · Casual/fun
+4. **Brand**: Accent color (hex)? Or "auto" to pick from the project's palette
+
+Then optionally ask:
+5. **Screenshots**: Are there specific screenshots to use? (point to files in the project)
+
+---
+
+## STEP 3 — Design the Storyboard
+
+Plan scenes using these types:
+
+| Type | When to use |
+|------|-------------|
+| `intro` | Always first — animated project name + tagline |
+| `feature` | Showcase a key feature with bullet points |
+| `code` | Show a code snippet (syntax highlighted, optional line reveal) |
+| `screenshot` | Display a UI screenshot with caption |
+| `comparison` | Before/after or problem/solution side-by-side |
+| `outro` | Always last — CTA + links |
+
+**Rules:**
+- Always start with `intro`, end with `outro`
+- Target ~8–12 seconds per scene for narration pace
+- Write narration as crisp spoken-word sentences (2–3 per scene, ~120–150 words/minute)
+- Design zoom keyframes for scenes that benefit from it (code line reveals, UI details)
 
 **Zoom keyframe guidance:**
-- Region values are fractions 0–1 of video dimensions (x=left, y=top, width, height)
-- Always pair a zoom-in keyframe with a zoom-out keyframe (same region, scales reversed)
-- Zoom-in duration: ~40 frames (≈1.3s). Zoom hold: as long as needed. Zoom-out: ~20 frames
-- Good zoom targets: the line being typed in a terminal, a button being clicked, a results panel, a highlighted code block
-- Keep `toScale` ≤ 3.0 for terminal (sharp SVG), ≤ 2.5 for browser (pixel-based video)
-- `startFrame` / `endFrame` are **absolute** frame numbers from the START of that scene (not the whole video)
+- Region values are fractions 0–1 of video dimensions (x=left, y=top)
+- Always pair zoom-in with zoom-out (same region, reversed scales)
+- Zoom-in: ~40 frames. Zoom hold: as needed. Zoom-out: ~20 frames
+- Good targets: a specific code block, a UI panel, a key statistic
+- `startFrame`/`endFrame` are absolute from the start of that scene
 
-Show the storyboard to the user and ask for approval before proceeding. Allow the user to adjust scenes or zoom regions.
+**Show the storyboard** to the user as a scene list with narration text and await approval.
+Allow them to adjust scenes, durations, or narration.
 
----
+Example storyboard scene plan (show to user before writing code):
+```
+Scene 1 — intro (8s)
+  Narration: "MyLib is the fastest way to add real-time sync to any JavaScript app."
 
-## STEP 4 — Generate Recording Script
+Scene 2 — code (12s)  "Install & Connect"
+  Narration: "Install with npm and connect in three lines of code."
+  Code: npm install mylib + connection snippet  Zoom: line 3 (the connect call), frames 90→200
 
-Write `scripts/record-demo.sh` in the **target project root**. Make it executable.
+Scene 3 — feature (10s)  "Real-time Events"
+  Narration: "Subscribe to any channel and receive events as they happen, with zero latency."
+  Bullets: Sub-millisecond delivery · Auto-reconnect · Presence tracking
 
-For each scene:
-
-### terminal scenes
-```bash
-echo "=== Scene N: <title> ==="
-echo "Demo: <description>"
-echo ""
-echo "Instructions:"
-echo "  <step-by-step instructions for what to type/run>"
-echo ""
-echo "Press ENTER to start asciinema recording (CTRL+D to stop)..."
-read -r
-asciinema rec --overwrite --title "<title>" "$RECORDINGS_DIR/scene-N.cast"
-"$PLUGIN_DIR/scripts/convert-cast.sh" "$RECORDINGS_DIR/scene-N.cast" "$RECORDINGS_DIR/scene-N.mp4"
+Scene 4 — outro (7s)
+  Narration: "Start building today at mylib.dev."
+  CTA: "Get started free"
 ```
 
-### browser scenes
-Generate an inline Node.js Playwright script (heredoc) that:
-1. Launches Chromium with `recordVideo: { dir: recordingsDir, size: { width: 1920, height: 1080 } }`
-2. Performs the specific demo actions for this feature using Playwright API calls
-   (goto, click, fill, waitForSelector, waitForTimeout, etc.)
-3. Closes context (triggers video save), renames the .webm to `scene-N.webm`
-4. Converts with: `ffmpeg -y -i scene-N.webm -c:v libx264 -pix_fmt yuv420p -movflags faststart scene-N.mp4`
+---
 
-The Playwright actions should faithfully reproduce what a user would do to demo this feature.
-If you have Playwright MCP available, use it to explore the running app first to get correct selectors.
+## STEP 4 — Generate TTS Narration
 
-### split scenes
-Run the terminal recording first, then the browser recording.
+After storyboard approval:
 
-Set `PLUGIN_DIR` at the top of the script to the absolute path of this plugin repo.
-Set `RECORDINGS_DIR` to `$PLUGIN_DIR/public/recordings`.
+1. Write `scripts/generate-narration.sh` in the **target project root**. This script calls
+   `{{REMOTION_PLUGIN_DIR}}/scripts/generate-narration.sh` for each scene's narration text.
+
+   ```bash
+   #!/usr/bin/env bash
+   # Auto-generated by /demo-video — re-run after editing narration text
+   set -euo pipefail
+   PLUGIN_DIR="{{REMOTION_PLUGIN_DIR}}"
+   OUT_DIR="$PLUGIN_DIR/public/narration"
+   mkdir -p "$OUT_DIR"
+
+   # Scene 1
+   "$PLUGIN_DIR/scripts/generate-narration.sh" \
+     "Narration text for scene 1" \
+     "$OUT_DIR/scene-1.mp3"
+
+   # Scene 2
+   "$PLUGIN_DIR/scripts/generate-narration.sh" \
+     "Narration text for scene 2" \
+     "$OUT_DIR/scene-2.mp3"
+
+   # ... one block per scene
+   echo "✓ All narration files generated in $OUT_DIR"
+   ```
+
+2. Make it executable and run it immediately:
+   ```bash
+   chmod +x scripts/generate-narration.sh && ./scripts/generate-narration.sh
+   ```
+
+3. Use `ffprobe` to measure each generated MP3's duration and adjust `durationInSeconds`
+   for each scene to match the audio plus a 0.8-second buffer:
+   ```bash
+   ffprobe -v quiet -show_entries format=duration -of csv=p=0 public/narration/scene-N.mp3
+   ```
+   Update `durationInSeconds` = measured duration + 0.8 (rounded up to nearest 0.5s).
+
+   If `ffprobe` / `ffmpeg` is not available, set durations to 10s per scene and note
+   that the user should adjust after installing ffmpeg.
 
 ---
 
-## STEP 5 — Update Remotion Storyboard
+## STEP 5 — Write the Remotion Storyboard
 
-Write `src/storyboard.ts` in the **plugin directory** (`{{REMOTION_PLUGIN_DIR}}/src/storyboard.ts`).
+Write `src/storyboard.ts` in **`{{REMOTION_PLUGIN_DIR}}/src/storyboard.ts`**.
 
-This must be valid TypeScript that exports a `Storyboard` typed value.
-Use the JSON from STEP 3 as the data, but write it as a TypeScript literal (not JSON syntax).
+This must be valid TypeScript exporting a `Storyboard` typed value. Include all content
+fields, narrationAudioFile paths, and zoomKeyframes.
 
-Example:
 ```typescript
 import type { Storyboard } from "./types";
 
 export const storyboard: Storyboard = {
-  projectName: "My CLI Tool",
-  projectType: "terminal",
+  projectName: "MyLib",
+  projectType: "api-library",
   outputFile: "demo.mp4",
   fps: 30,
   width: 1920,
   height: 1080,
+  theme: {
+    accentColor: "#6366f1",       // use the user's brand color
+    backgroundColor: "#0f0f0f",
+    fontFamily: "system-ui, sans-serif",
+  },
   scenes: [
     {
       id: "scene-1",
-      title: "Install & First Run",
-      description: "Show npm install and the first hello-world output",
-      type: "terminal",
-      durationInSeconds: 20,
-      recordingFile: "recordings/scene-1.mp4",
+      type: "intro",
+      title: "MyLib",
+      durationInSeconds: 8,
+      narration: "MyLib is the fastest way to add real-time sync to any JavaScript app.",
+      narrationAudioFile: "narration/scene-1.mp3",
+      zoomKeyframes: [],
+      introContent: {
+        projectName: "MyLib",
+        tagline: "Real-time sync for every JavaScript app",
+        badge: "v2.0",
+        accentColor: "#6366f1",
+      },
+    },
+    {
+      id: "scene-2",
+      type: "code",
+      title: "Install & Connect",
+      durationInSeconds: 12,
+      narration: "Install with npm and connect in three lines of code.",
+      narrationAudioFile: "narration/scene-2.mp3",
       zoomKeyframes: [
         {
-          startFrame: 300,
-          endFrame: 420,
+          startFrame: 90,
+          endFrame: 200,
           fromScale: 1.0,
-          toScale: 2.5,
-          region: { x: 0.0, y: 0.8, width: 0.7, height: 0.15 },
-          label: "Success output",
+          toScale: 2.2,
+          region: { x: 0.05, y: 0.45, width: 0.7, height: 0.12 },
+          label: "One-line connect",
         },
         {
-          startFrame: 420,
-          endFrame: 480,
-          fromScale: 2.5,
+          startFrame: 200,
+          endFrame: 240,
+          fromScale: 2.2,
           toScale: 1.0,
-          region: { x: 0.0, y: 0.8, width: 0.7, height: 0.15 },
+          region: { x: 0.05, y: 0.45, width: 0.7, height: 0.12 },
         },
       ],
+      codeContent: {
+        code: `import { connect } from 'mylib';
+
+const client = connect({ apiKey: process.env.MYLIB_KEY });
+const channel = client.channel('chat');
+
+channel.subscribe((event) => {
+  console.log('New message:', event.data);
+});`,
+        language: "typescript",
+        filename: "example.ts",
+        highlightLines: [3],
+        revealByLine: true,
+      },
+    },
+    {
+      id: "scene-3",
+      type: "feature",
+      title: "Real-time Events",
+      durationInSeconds: 10,
+      narration: "Subscribe to any channel and receive events with zero latency. Auto-reconnect handles network drops automatically.",
+      narrationAudioFile: "narration/scene-3.mp3",
+      zoomKeyframes: [],
+      featureContent: {
+        featureTitle: "Real-time Events",
+        bullets: [
+          "Sub-millisecond delivery",
+          "Auto-reconnect on network drop",
+          "Presence tracking built-in",
+        ],
+        icon: "⚡",
+        layout: "centered",
+      },
+    },
+    {
+      id: "scene-4",
+      type: "outro",
+      title: "Get Started",
+      durationInSeconds: 7,
+      narration: "Start building with MyLib today.",
+      narrationAudioFile: "narration/scene-4.mp3",
+      zoomKeyframes: [],
+      outroContent: {
+        headline: "Start building today",
+        cta: "Get started free",
+        links: [
+          { label: "mylib.dev/docs", url: "https://mylib.dev/docs" },
+          { label: "github.com/mylib", url: "https://github.com/mylib" },
+        ],
+        accentColor: "#6366f1",
+      },
     },
   ],
 };
 ```
 
+**Validation checklist before writing:**
+- [ ] Every scene has a matching `narrationAudioFile: "narration/scene-N.mp3"`
+- [ ] Zoom `endFrame` ≤ `durationInSeconds × fps` for each scene
+- [ ] Zoom regions: all x, y, width, height are fractions 0–1
+- [ ] `introContent.accentColor` matches `theme.accentColor`
+- [ ] `outroContent.accentColor` matches `theme.accentColor`
+- [ ] Code in `codeContent.code` uses real syntax from the target project (not placeholder)
+- [ ] Bullet points are specific to the project's actual features
+
 ---
 
 ## STEP 6 — Guide Execution
 
-Print clear next steps:
+Print:
 
 ```
-✓ Storyboard generated: storyboard.json
-✓ Recording script:     scripts/record-demo.sh
-✓ Remotion updated:     [plugin-dir]/src/storyboard.ts
+✓ Storyboard written:   {{REMOTION_PLUGIN_DIR}}/src/storyboard.ts
+✓ Narration generated:  {{REMOTION_PLUGIN_DIR}}/public/narration/*.mp3
+✓ Narration script:     ./scripts/generate-narration.sh
 
 Next steps:
-──────────────────────────────────────────────────────
-1. Record your demo:
-   chmod +x scripts/record-demo.sh && ./scripts/record-demo.sh
+──────────────────────────────────────────────────────────────
+1. Preview the video (live, hot-reloads on storyboard edits):
+   cd {{REMOTION_PLUGIN_DIR}} && npx remotion studio
 
-2. Preview the video (live, interactive):
-   cd [plugin-dir] && npx remotion studio
-
-3. Render the final video:
-   npx remotion render DemoVideo output/demo.mp4
+2. Render the final video:
+   cd {{REMOTION_PLUGIN_DIR}} && npx remotion render DemoVideo output/demo.mp4
 
 Tips:
-  • In Remotion Studio, scrub the timeline to check zoom timing
-  • Adjust zoomKeyframes in src/storyboard.ts and the studio hot-reloads
-  • Re-run ./scripts/record-demo.sh to re-record any scene
-──────────────────────────────────────────────────────
+  • Edit src/storyboard.ts and the studio updates instantly
+  • Re-run ./scripts/generate-narration.sh after editing narration text
+  • Set OPENAI_API_KEY or ELEVENLABS_API_KEY for higher-quality voices
+  • Drop screenshots in {{REMOTION_PLUGIN_DIR}}/public/ and reference them
+    with type: "screenshot" scenes
+──────────────────────────────────────────────────────────────
 ```
 
 ---
 
-## Notes on Playwright MCP
+## Scene Type Reference
 
-If the project has a running web server (detected via `package.json` start scripts, a running
-process on localhost, or the user mentions it), offer to use Playwright MCP to:
-- Navigate the app and take screenshots to verify selectors before generating the script
-- Help identify the exact CSS selectors / URLs needed for the Playwright recording script
+### `intro`
+```typescript
+introContent: {
+  projectName: string;      // large hero text
+  tagline: string;          // subtitle
+  badge?: string;           // pill label e.g. "Open Source"
+  accentColor?: string;     // hex color
+}
+```
 
----
+### `feature`
+```typescript
+featureContent: {
+  featureTitle: string;
+  bullets: string[];        // revealed one at a time
+  icon?: string;            // emoji shown above title
+  layout?: "centered" | "left";
+}
+```
 
-## Quality Checklist
+### `code`
+```typescript
+codeContent: {
+  code: string;             // the actual code snippet
+  language: string;         // typescript, python, bash, yaml, json, javascript
+  filename?: string;        // tab label
+  highlightLines?: number[]; // 1-indexed lines to highlight yellow
+  revealByLine?: boolean;   // animate line-by-line reveal
+}
+```
 
-Before finishing, verify the generated storyboard:
-- [ ] Each scene has at least one zoom-in + zoom-out pair (unless it's very short)
-- [ ] Zoom regions are within bounds (all values 0–1)
-- [ ] `endFrame` of zoom-out ≤ `durationInSeconds × fps` for that scene
-- [ ] `recordingFile` paths match what `record-demo.sh` actually saves
-- [ ] `totalDuration` = sum of all scene durations (minus 20×(scenes-1) for crossfades) ≤ user's requested length
+### `screenshot`
+```typescript
+screenshotContent: {
+  imageFile: string;        // relative to public/ e.g. "screenshots/dashboard.png"
+  caption?: string;
+  backgroundColor?: string;
+}
+```
+
+### `comparison`
+```typescript
+comparisonContent: {
+  leftLabel: string;        // e.g. "Before" or "Without MyLib"
+  leftContent: string;      // code or text
+  rightLabel: string;       // e.g. "After" or "With MyLib"
+  rightContent: string;
+  language?: string;        // for syntax highlighting
+}
+```
+
+### `outro`
+```typescript
+outroContent: {
+  headline: string;
+  cta?: string;             // button text
+  links?: { label: string; url: string }[];
+  accentColor?: string;
+}
+```
