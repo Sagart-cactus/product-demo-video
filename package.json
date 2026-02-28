@@ -1,7 +1,7 @@
 {
   "name": "product-demo-video",
   "version": "1.0.0",
-  "description": "Claude Code plugin for creating product demo videos with animated zoom effects",
+  "description": "Claude Code plugin for creating product demo videos with animated scenes and narration",
   "scripts": {
     "studio": "remotion studio",
     "render": "remotion render DemoVideo output/demo.mp4",
