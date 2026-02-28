@@ -1,0 +1,12 @@
+{
+  "name": "demo-video",
+  "version": "1.0.0",
+  "description": "Generate polished product demo videos as animated Remotion React scenes — no screen recording required.",
+  "author": {
+    "name": "Trivedi"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/Sagart-cactus/product-demo-video",
+  "repository": "https://github.com/Sagart-cactus/product-demo-video",
+  "commands": "./.claude/commands"
+}
