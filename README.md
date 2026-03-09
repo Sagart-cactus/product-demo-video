@@ -7,7 +7,9 @@ Type `/demo-video` from any project and Claude will analyze your code, ask which
 showcase, write a storyboard, generate TTS narration, and render everything as a 1080p video
 using [Remotion](https://www.remotion.dev).
 
----
+## Demo Video
+
+[Watch the demo video](./output/DemoVideo.mp4)
 
 ## How it works
 
