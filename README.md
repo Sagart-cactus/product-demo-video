@@ -9,9 +9,9 @@ using [Remotion](https://www.remotion.dev).
 
 ## Demo Video
 
-<video src="https://github.com/Sagart-cactus/product-demo-video/raw/refs/heads/main/output/DemoVideo.mp4" controls width="100%"></video>
+[Watch the demo video on GitHub](https://github.com/Sagart-cactus/product-demo-video/blob/main/output/DemoVideo.mp4)
 
-[Download or open the demo video directly](./output/DemoVideo.mp4)
+[Download the demo video directly](https://github.com/Sagart-cactus/product-demo-video/raw/refs/heads/main/output/DemoVideo.mp4)
 
 ## How it works
 
